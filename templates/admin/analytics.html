@@ -1,0 +1,541 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics Dashboard - JemTech Event Hub{% endblock %}
+
+{% block extra_css %}
+<style>
+    .stats-card {
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s;
+    }
+    .stats-card:hover {
+        transform: translateY(-3px);
+    }
+    .stats-icon {
+        font-size: 2.5rem;
+        opacity: 0.7;
+    }
+    .chart-container {
+        position: relative;
+        height: 300px;
+        margin: 20px 0;
+    }
+    .date-filter {
+        max-width: 200px;
+    }
+    .tab-pane {
+        padding: 20px 0;
+    }
+    .border-left-primary { border-left: 4px solid #005EB8 !important; }
+    .border-left-success { border-left: 4px solid #28a745 !important; }
+    .border-left-info { border-left: 4px solid #17a2b8 !important; }
+    .border-left-warning { border-left: 4px solid #ffc107 !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Analytics Dashboard</h1>
+        <div class="btn-group">
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+            </a>
+            <button class="btn btn-primary" onclick="exportAnalytics()">
+                <i class="bi bi-download me-1"></i> Export Report
+            </button>
+        </div>
+    </div>
+
+    <!-- Date Range Filter -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Date Range</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-3 mb-2">
+                    <label for="startDate" class="form-label">Start Date</label>
+                    <input type="date" class="form-control" id="startDate">
+                </div>
+                <div class="col-md-3 mb-2">
+                    <label for="endDate" class="form-label">End Date</label>
+                    <input type="date" class="form-control" id="endDate">
+                </div>
+                <div class="col-md-3 mb-2">
+                    <label for="presetRange" class="form-label">Preset Ranges</label>
+                    <select class="form-select" id="presetRange">
+                        <option value="7">Last 7 Days</option>
+                        <option value="30" selected>Last 30 Days</option>
+                        <option value="90">Last 90 Days</option>
+                        <option value="365">Last 12 Months</option>
+                        <option value="custom">Custom Range</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-2 d-flex align-items-end">
+                    <button class="btn btn-primary w-100" onclick="applyDateFilter()">
+                        <i class="bi bi-filter me-1"></i> Apply Filter
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Key Metrics -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stats-card border-left-primary">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Events</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ analytics_data.total_events if analytics_data else 0 }}</div>
+                            <div class="mt-2 text-success small">
+                                <i class="bi bi-arrow-up me-1"></i>12% from last period
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-calendar-event stats-icon text-primary"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stats-card border-left-success">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Active Users</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ analytics_data.total_users if analytics_data else 0 }}</div>
+                            <div class="mt-2 text-success small">
+                                <i class="bi bi-arrow-up me-1"></i>8% from last period
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-people stats-icon text-success"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stats-card border-left-info">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Media Uploads</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ analytics_data.total_media if analytics_data else 0 }}</div>
+                            <div class="mt-2 text-success small">
+                                <i class="bi bi-arrow-up me-1"></i>23% from last period
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-images stats-icon text-info"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card stats-card border-left-warning">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Check-ins</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ analytics_data.total_checkins if analytics_data else 0 }}</div>
+                            <div class="mt-2 text-danger small">
+                                <i class="bi bi-arrow-down me-1"></i>3% from last period
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-qr-code-scan stats-icon text-warning"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analytics Tabs -->
+    <div class="card">
+        <div class="card-header">
+            <ul class="nav nav-tabs card-header-tabs" id="analyticsTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="events-tab" data-bs-toggle="tab" data-bs-target="#events" type="button" role="tab">
+                        <i class="bi bi-calendar-event me-1"></i> Events Analytics
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab">
+                        <i class="bi bi-people me-1"></i> User Analytics
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="media-tab" data-bs-toggle="tab" data-bs-target="#media" type="button" role="tab">
+                        <i class="bi bi-images me-1"></i> Media Analytics
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="geography-tab" data-bs-toggle="tab" data-bs-target="#geography" type="button" role="tab">
+                        <i class="bi bi-geo-alt me-1"></i> Geographic Data
+                    </button>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body">
+            <div class="tab-content" id="analyticsTabsContent">
+                <!-- Events Tab -->
+                <div class="tab-pane fade show active" id="events" role="tabpanel">
+                    <div class="row">
+                        <div class="col-lg-8">
+                            <h5 class="mb-3">Events Over Time</h5>
+                            <div class="chart-container">
+                                <canvas id="eventsChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <h5 class="mb-3">Event Categories</h5>
+                            <div class="chart-container">
+                                <canvas id="categoriesChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <h5 class="mb-3">Top Events</h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Event</th>
+                                            <th>Check-ins</th>
+                                            <th>Media</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% if top_events %}
+                                            {% for event in top_events %}
+                                            <tr>
+                                                <td>{{ event.title }}</td>
+                                                <td>{{ event.checkins|length if event.checkins else 0 }}</td>
+                                                <td>{{ event.media|length if event.media else 0 }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        {% else %}
+                                            <tr>
+                                                <td colspan="3" class="text-center text-muted">No event data available</td>
+                                            </tr>
+                                        {% endif %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="mb-3">Event Status</h5>
+                            <div class="chart-container">
+                                <canvas id="eventStatusChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Users Tab -->
+                <div class="tab-pane fade" id="users" role="tabpanel">
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <h5 class="mb-3">User Growth</h5>
+                            <div class="chart-container">
+                                <canvas id="userGrowthChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <h5 class="mb-3">User Activity</h5>
+                            <div class="chart-container">
+                                <canvas id="userActivityChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <h5 class="mb-3">User Statistics</h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Metric</th>
+                                            <th>Count</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Total Users</td>
+                                            <td>{{ analytics_data.total_users if analytics_data else 0 }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Active Users</td>
+                                            <td>{{ analytics_data.active_users if analytics_data else 0 }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Admin Users</td>
+                                            <td>{{ analytics_data.admin_users if analytics_data else 0 }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="mb-3">User Distribution</h5>
+                            <div class="chart-container">
+                                <canvas id="userDemographicsChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Media Tab -->
+                <div class="tab-pane fade" id="media" role="tabpanel">
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <h5 class="mb-3">Media Upload Trends</h5>
+                            <div class="chart-container">
+                                <canvas id="mediaTrendsChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <h5 class="mb-3">Media Type Distribution</h5>
+                            <div class="chart-container">
+                                <canvas id="mediaTypeChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <h5 class="mb-3">Media Statistics</h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Status</th>
+                                            <th>Count</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Approved</td>
+                                            <td>{{ analytics_data.approved_media if analytics_data else 0 }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Pending</td>
+                                            <td>{{ analytics_data.pending_media if analytics_data else 0 }}</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Rejected</td>
+                                            <td>{{ analytics_data.rejected_media if analytics_data else 0 }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="mb-3">Consent Statistics</h5>
+                            <div class="chart-container">
+                                <canvas id="consentChart"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Geography Tab -->
+                <div class="tab-pane fade" id="geography" role="tabpanel">
+                    <div class="row">
+                        <div class="col-lg-8">
+                            <h5 class="mb-3">Geographic Distribution</h5>
+                            <div class="chart-container">
+                                <div id="map" style="height: 400px; background-color: #f8f9fa; border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                    <p class="text-muted">Map visualization would be implemented here</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <h5 class="mb-3">Top Locations</h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Location</th>
+                                            <th>Events</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% if top_locations %}
+                                            {% for location in top_locations %}
+                                            <tr>
+                                                <td>{{ location[0] if location[0] else 'Unknown' }}</td>
+                                                <td>{{ location[1] if location[1] else 0 }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                        {% else %}
+                                            <tr>
+                                                <td colspan="2" class="text-center text-muted">No location data available</td>
+                                            </tr>
+                                        {% endif %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set default dates (30 days ago to today)
+        const endDate = new Date();
+        const startDate = new Date();
+        startDate.setDate(endDate.getDate() - 30);
+
+        document.getElementById('startDate').value = startDate.toISOString().split('T')[0];
+        document.getElementById('endDate').value = endDate.toISOString().split('T')[0];
+
+        initializeCharts();
+        
+        // Date range preset handler
+        const presetRange = document.getElementById('presetRange');
+        if (presetRange) {
+            presetRange.addEventListener('change', function() {
+                if (this.value !== 'custom') {
+                    const days = parseInt(this.value);
+                    const endDate = new Date();
+                    const startDate = new Date();
+                    startDate.setDate(endDate.getDate() - days);
+
+                    document.getElementById('startDate').value = startDate.toISOString().split('T')[0];
+                    document.getElementById('endDate').value = endDate.toISOString().split('T')[0];
+                }
+            });
+        }
+    });
+
+    function applyDateFilter() {
+        const startDate = document.getElementById('startDate').value;
+        const endDate = document.getElementById('endDate').value;
+
+        if (!startDate || !endDate) {
+            showAlert('Please select both start and end dates.', 'danger');
+            return;
+        }
+
+        const applyButton = document.querySelector('.btn-primary');
+        const originalText = applyButton.innerHTML;
+        applyButton.innerHTML = '<i class="bi bi-arrow-clockwise animate-spin me-1"></i> Loading...';
+        applyButton.disabled = true;
+
+        // Simulate API call
+        setTimeout(() => {
+            applyButton.innerHTML = originalText;
+            applyButton.disabled = false;
+            showAlert('Date filter applied successfully!', 'success');
+        }, 1000);
+    }
+
+    function initializeCharts() {
+        // Sample chart data - replace with actual data from your backend
+        const sampleData = {
+            events: [12, 19, 8, 15, 22, 18],
+            categories: [30, 25, 20, 15, 10],
+            mediaTypes: [70, 30], // Images vs Videos
+            consent: [60, 40] // Public vs Private
+        };
+
+        // Initialize charts with sample data
+        initLineChart('eventsChart', 'Events Over Time', sampleData.events);
+        initDoughnutChart('categoriesChart', 'Event Categories', ['Conference', 'Workshop', 'Social', 'Sports', 'Other'], sampleData.categories);
+        initDoughnutChart('mediaTypeChart', 'Media Types', ['Images', 'Videos'], sampleData.mediaTypes);
+        initDoughnutChart('consentChart', 'Consent Types', ['Public', 'Private'], sampleData.consent);
+    }
+
+    function initLineChart(canvasId, label, data) {
+        const ctx = document.getElementById(canvasId);
+        if (!ctx) return;
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [{
+                    label: label,
+                    data: data,
+                    borderColor: '#005EB8',
+                    tension: 0.1,
+                    fill: true,
+                    backgroundColor: 'rgba(0, 94, 184, 0.1)'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+    }
+
+    function initDoughnutChart(canvasId, label, labels, data) {
+        const ctx = document.getElementById(canvasId);
+        if (!ctx) return;
+
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: label,
+                    data: data,
+                    backgroundColor: ['#005EB8', '#FF8F1C', '#28a745', '#dc3545', '#6c757d']
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false
+            }
+        });
+    }
+
+    function exportAnalytics() {
+        const exportButton = document.querySelector('.btn-primary');
+        const originalText = exportButton.innerHTML;
+        exportButton.innerHTML = '<i class="bi bi-arrow-clockwise animate-spin me-1"></i> Preparing...';
+        exportButton.disabled = true;
+
+        setTimeout(() => {
+            // Simulate download
+            const link = document.createElement('a');
+            link.href = '#';
+            link.download = 'analytics-report.csv';
+            link.click();
+
+            exportButton.innerHTML = originalText;
+            exportButton.disabled = false;
+            showAlert('Report exported successfully!', 'success');
+        }, 1500);
+    }
+
+    function showAlert(message, type) {
+        // Simple alert implementation
+        alert(`${type.toUpperCase()}: ${message}`);
+    }
+</script>
+{% endblock %}

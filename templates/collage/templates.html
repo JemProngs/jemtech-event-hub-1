@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+
+{% block title %}Collage Templates - JemTech Event Hub{% endblock %}
+
+{% block extra_css %}
+<style>
+    .template-category {
+        margin-bottom: 3rem;
+    }
+    .template-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+    .template-card {
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        cursor: pointer;
+    }
+    .template-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+    .template-image {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+    }
+    .template-info {
+        padding: 15px;
+    }
+    .template-title {
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+    .template-description {
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin-bottom: 10px;
+    }
+    .template-badge {
+        background-color: #005EB8;
+        color: white;
+        padding: 3px 8px;
+        border-radius: 4px;
+        font-size: 0.8rem;
+    }
+    .category-header {
+        border-bottom: 2px solid #005EB8;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-5">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('event_public_page', public_id=event.public_id) }}">{{ event.title }}</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Collage Templates</li>
+                </ol>
+            </nav>
+
+            <h1 class="display-5 fw-bold">Collage Templates</h1>
+            <p class="lead">Choose from our professionally designed templates to create stunning collages</p>
+        </div>
+    </div>
+
+    <!-- Wedding Templates -->
+    <div class="template-category">
+        <div class="category-header">
+            <h2 class="h3"><i class="bi bi-heart-fill me-2 text-danger"></i>Wedding Templates</h2>
+            <p class="text-muted">Elegant designs perfect for wedding memories</p>
+        </div>
+
+        <div class="template-grid">
+            <div class="template-card" data-template="wedding_elegance">
+                <img src="{{ url_for('static', filename='images/templates/wedding_elegance.jpg') }}" alt="Wedding Elegance" class="template-image">
+                <div class="template-info">
+                    <h3 class="template-title">Wedding Elegance</h3>
+                    <p class="template-description">Classic and elegant design for wedding photos</p>
+                    <span class="template-badge">Wedding</span>
+                </div>
+            </div>
+
+            <div class="template-card" data-template="romantic_bliss">
+                <img src="{{ url_for('static', filename='images/templates/romantic_bliss.jpg') }}" alt="Romantic Bliss" class="template-image">
+                <div class="template-info">
+                    <h3 class="template-title">Romantic Bliss</h3>
+                    <p class="template-description">Romantic design with soft colors and floral elements</p>
+                    <span class="template-badge">Wedding</span>
+                </div>
+            </div>
+
+            <div class="template-card" data-template="golden_moments">
+                <img src="{{ url_for('static', filename='images/templates/golden_moments.jpg') }}" alt="Golden Moments" class="template-image">
+                <div class="template-info">
+                    <h3 class="template-title">Golden Moments</h3>
+                    <p class="template-description">Luxurious gold-themed template for special moments</p>
+                    <span class="template-badge">Wedding</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Birthday Templates -->
+    <div class="template-category">
+        <div class="category-header">
+            <h2 class="h3"><i class="bi bi-balloon-fill me-2 text-warning"></i>Birthday Templates</h2>
+            <p class="text-muted">Fun and festive designs for birthday celebrations</p>
+        </div>
+
+        <div class="template-grid">
+            <div class="template-card" data-template="birthday_fun">
+                <img src="{{ url_for('static', filename='images/templates/birthday_fun.jpg') }}" alt="Birthday Fun" class="template-image">
+                <div class="template-info">
+                    <h3 class="template-title">Birthday Fun</h3>
+                    <p class="template-description">Colorful and playful design for birthday parties</p>
+                    <span class="template-badge">Birthday</span>
+                </div>
+            </div>
+
+            <div class="template-card" data-template="celebration_time">
+                <img src="{{ url_for('static', filename='images/templates/celebration_time.jpg') }}" alt="Celebration Time" class="template-image">
+                <div class="template-info">
+                    <h3 class="template-title">Celebration Time</h3>
+                    <p class="template-description">Energetic design with party elements</p>
+                    <span class="template-badge">Birthday</span>
+                </div>
+            </div>
+
+            <div class="template-card" data-template="kids_party">
+                <img src="{{ url_for('static', filename='images/templates/kids_party.jpg') }}" alt="Kids Party" class="template-image">
+                <div class="template-info">
+                    <h3 class="template-title">Kids Party</h3>
+                    <p class="template-description">Fun design perfect for children's birthdays</p>
+                    <span class="template-badge">Birthday</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Corporate Templates -->
+    <div class="template-category">
+        <div class="category-header">
+            <h2 class="h3"><i class="bi bi-briefcase-fill me-2 text-primary"></i>Corporate Templates</h2>
+            <p class="text-muted">Professional designs for business events and conferences</p>
+        </div>
+
+        <div class="template-grid">
+            <div class="template-card" data-template="professional_elegance">
+                <img src="{{ url_for('static', filename='images/templates/professional_elegance.jpg') }}" alt="Professional Elegance" class="template-image">
+                <div class="template-info">
+                    <h3 class="template-title">Professional Elegance</h3>
+                    <p class="template-description">Clean and sophisticated design for corporate events</p>
+                    <span class="template-badge">Corporate</span>
+                </div>
+            </div>
+
+            <div class="template-card" data-template="conference_style">
+                <img src="{{ url_for('static', filename='images/templates/conference_style.jpg') }}" alt="Conference Style" class="template-image">
+                <div class="template-info">
+                    <h3 class="template-title">Conference Style</h3>
+                    <p class="template-description">Modern design perfect for conferences and meetings</p>
+                    <span class="template-badge">Corporate</span>
+                </div>
+            </div>
+
+            <div class="template-card" data-template="business_chic">
+                <img src="{{ url_for('static', filename='images/templates/business_chic.jpg') }}" alt="Business Chic" class="template-image">
+                <div class="template-info">
+                    <h3 class="template-title">Business Chic</h3>
+                    <p class="template-description">Stylish design for professional gatherings</p>
+                    <span class="template-badge">Corporate</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Casual Templates -->
+    <div class="template-category">
+        <div class="category-header">
+            <h2 class="h3"><i class="bi bi-people-fill me-2 text-success"></i>Casual Templates</h2>
+            <p class="text-muted">Versatile designs for everyday events and gatherings</p>
+        </div>
+
+        <div class="template-grid">
+            <div class="template-card" data-template="casual_fun">
+                <img src="{{ url_for('static', filename='images/templates/casual_fun.jpg') }}" alt="Casual Fun" class="template-image">
+                <div class="template-info">
+                    <h3 class="template-title">Casual Fun</h3>
+                    <p class="template-description">Relaxed design for casual get-togethers</p>
+                    <span class="template-badge">Casual</span>
+                </div>
+            </div>
+
+            <div class="template-card" data-template="family_moments">
+                <img src="{{ url_for('static', filename='images/templates/family_moments.jpg') }}" alt="Family Moments" class="template-image">
+                <div class="template-info">
+                    <h3 class="template-title">Family Moments</h3>
+                    <p class="template-description">Warm design perfect for family gatherings</p>
+                    <span class="template-badge">Casual</span>
+                </div>
+            </div>
+
+            <div class="template-card" data-template="friends_forever">
+                <img src="{{ url_for('static', filename='images/templates/friends_forever.jpg') }}" alt="Friends Forever" class="template-image">
+                <div class="template-info">
+                    <h3 class="template-title">Friends Forever</h3>
+                    <p class="template-description">Fun design for friends hanging out</p>
+                    <span class="template-badge">Casual</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="row mt-5">
+        <div class="col-12 text-center">
+            <a href="{{ url_for('event_public_page', public_id=event.public_id) }}" class="btn btn-outline-secondary me-3">
+                <i class="bi bi-arrow-left me-1"></i> Back to Event
+            </a>
+            <a href="{{ url_for('collage.builder') }}?event_id={{ event.id }}" class="btn btn-primary">
+                <i class="bi bi-plus-circle me-1"></i> Start Creating
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Template selection functionality
+        const templateCards = document.querySelectorAll('.template-card');
+
+        templateCards.forEach(card => {
+            card.addEventListener('click', function() {
+                const templateId = this.dataset.template;
+
+                // Remove active class from all cards
+                templateCards.forEach(c => c.classList.remove('active'));
+
+                // Add active class to selected card
+                this.classList.add('active');
+
+                // Store selected template in session storage
+                sessionStorage.setItem('selectedTemplate', templateId);
+
+                // Show confirmation button
+                const confirmButton = document.getElementById('confirm-selection');
+                if (confirmButton) {
+                    confirmButton.style.display = 'block';
+                }
+            });
+        });
+
+        // Confirm selection button
+        const confirmButton = document.createElement('div');
+        confirmButton.id = 'confirm-selection';
+        confirmButton.className = 'fixed-bottom bg-white p-3 shadow-lg text-center';
+        confirmButton.style.display = 'none';
+        confirmButton.innerHTML = `
+            <button class="btn btn-primary btn-lg" onclick="useSelectedTemplate()">
+                <i class="bi bi-check-circle me-2"></i> Use This Template
+            </button>
+        `;
+
+        document.body.appendChild(confirmButton);
+    });
+
+    function useSelectedTemplate() {
+        const selectedTemplate = sessionStorage.getItem('selectedTemplate');
+        if (selectedTemplate) {
+            window.location.href = "{{ url_for('collage.builder') }}?event_id={{ event.id }}&template=" + selectedTemplate;
+        }
+    }
+</script>
+{% endblock %}

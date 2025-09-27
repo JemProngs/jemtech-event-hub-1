@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}My Events - JemTech Event Hub{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>My Events</h1>
+        <div class="btn-group">
+            <a href="{{ url_for('user_events', status='all') }}" class="btn btn-outline-primary {{ 'active' if status_filter == 'all' }}">All</a>
+            <a href="{{ url_for('user_events', status='pending') }}" class="btn btn-outline-warning {{ 'active' if status_filter == 'pending' }}">Pending</a>
+            <a href="{{ url_for('user_events', status='approved') }}" class="btn btn-outline-success {{ 'active' if status_filter == 'approved' }}">Approved</a>
+            <a href="{{ url_for('user_events', status='rejected') }}" class="btn btn-outline-danger {{ 'active' if status_filter == 'rejected' }}">Rejected</a>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Events List</h5>
+        </div>
+        <div class="card-body">
+            {% if events and events|length > 0 %}
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Event</th>
+                            <th>Date & Time</th>
+                            <th>Location</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for event in events %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    {% if event.banner_image %}
+                                    <img src="{{ url_for('static', filename='uploads/banners/' + event.banner_image) }}" class="rounded me-3" width="60" height="40" style="object-fit: cover;">
+                                    {% else %}
+                                    <div class="bg-secondary rounded me-3 d-flex align-items-center justify-content-center" style="width: 60px; height: 40px;">
+                                        <i class="bi bi-calendar-event text-white"></i>
+                                    </div>
+                                    {% endif %}
+                                    <div>
+                                        <h6 class="mb-0">{{ event.title }}</h6>
+                                        <small class="text-muted">{{ event.category|title }}</small>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div>{{ event.start_date.strftime('%Y-%m-%d') }}</div>
+                                <small class="text-muted">{{ event.start_date.strftime('%H:%M') }} - {{ event.end_date.strftime('%H:%M') }}</small>
+                            </td>
+                            <td>{{ event.location|truncate(30) }}</td>
+                            <td>
+                                <span class="badge bg-{{ 'success' if event.status == 'approved' else 'warning' if event.status == 'pending' else 'danger' }}">
+                                    {{ event.status|title }}
+                                </span>
+                            </td>
+                            <td>{{ event.created_at.strftime('%Y-%m-%d') }}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ url_for('user_event_detail', event_id=event.id) }}" class="btn btn-outline-primary">View</a>
+                                    {% if event.status == 'approved' %}
+                                    <a href="{{ url_for('event_public_page', public_id=event.public_id) }}" target="_blank" class="btn btn-outline-secondary">Public Page</a>
+                                    <a href="{{ url_for('qr.download_qr', event_id=event.id) }}" class="btn btn-outline-info">QR Code</a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if pagination %}
+            <nav aria-label="Event pagination">
+                <ul class="pagination justify-content-center mt-4">
+                    {% if pagination.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('user_events', status=status_filter, page=pagination.prev_num) }}">Previous</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Previous</span>
+                    </li>
+                    {% endif %}
+
+                    {% for page_num in pagination.iter_pages() %}
+                    {% if page_num %}
+                    <li class="page-item {{ 'active' if page_num == pagination.page }}">
+                        <a class="page-link" href="{{ url_for('user_events', status=status_filter, page=page_num) }}">{{ page_num }}</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">...</span>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if pagination.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('user_events', status=status_filter, page=pagination.next_num) }}">Next</a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Next</span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-calendar-x display-1 text-muted"></i>
+                <h4 class="mt-3">No events found</h4>
+                <p class="text-muted">
+                    {% if status_filter != 'all' %}
+                    You don't have any events with status "{{ status_filter }}".
+                    {% else %}
+                    You haven't created any events yet.
+                    {% endif %}
+                </p>
+                <a href="{{ url_for('user_create_event') }}" class="btn btn-primary mt-3">
+                    <i class="bi bi-plus-circle me-1"></i> Create Your First Event
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,300 @@
+{% extends "base.html" %}
+
+{% block title %}My Dashboard - JemTech Event Hub{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>My Dashboard</h1>
+        <a href="{{ url_for('user_create_event') }}" class="btn btn-primary">
+            <i class="bi bi-plus-circle me-1"></i> Create New Event
+        </a>
+    </div>
+    
+    <!-- Stats Overview -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card dashboard-card border-left-primary">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">Total Events</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pending_events|length + approved_events|length + rejected_events|length }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-calendar-event fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card dashboard-card border-left-success">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Approved Events</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ approved_events|length }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-check-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card dashboard-card border-left-warning">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending Events</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ pending_events|length }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-clock-history fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card dashboard-card border-left-danger">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Rejected Events</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ rejected_events|length }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="bi bi-x-circle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Events -->
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Pending Events -->
+            {% if pending_events %}
+            <div class="card mb-4">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="card-title mb-0">Pending Approval ({{ pending_events|length }})</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Event</th>
+                                    <th>Date</th>
+                                    <th>Location</th>
+                                    <th>Submitted</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for event in pending_events %}
+                                <tr>
+                                    <td>
+                                        <a href="{{ url_for('user_event_detail', event_id=event.id) }}" class="text-decoration-none">
+                                            {{ event.title }}
+                                        </a>
+                                    </td>
+                                    <td>{{ event.start_date.strftime('%Y-%m-%d') }}</td>
+                                    <td>{{ event.location }}</td>
+                                    <td>{{ event.created_at.strftime('%Y-%m-%d') }}</td>
+                                    <td>
+                                        <a href="{{ url_for('user_event_detail', event_id=event.id) }}" class="btn btn-sm btn-outline-primary">View</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Approved Events -->
+            {% if approved_events %}
+            <div class="card mb-4">
+                <div class="card-header bg-success text-white">
+                    <h5 class="card-title mb-0">Approved Events ({{ approved_events|length }})</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Event</th>
+                                    <th>Date</th>
+                                    <th>Location</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for event in approved_events %}
+                                <tr>
+                                    <td>
+                                        <a href="{{ url_for('user_event_detail', event_id=event.id) }}" class="text-decoration-none">
+                                            {{ event.title }}
+                                        </a>
+                                    </td>
+                                    <td>{{ event.start_date.strftime('%Y-%m-%d') }}</td>
+                                    <td>{{ event.location }}</td>
+                                    <td>
+                                        <span class="badge bg-success">Approved</span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{{ url_for('user_event_detail', event_id=event.id) }}" class="btn btn-outline-primary">View</a>
+                                            <a href="{{ url_for('event_public_page', public_id=event.public_id) }}" target="_blank" class="btn btn-outline-secondary">Public Page</a>
+                                            <a href="{{ url_for('qr.download_qr', event_id=event.id) }}" class="btn btn-outline-info">QR Code</a>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Rejected Events -->
+            {% if rejected_events %}
+            <div class="card mb-4">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="card-title mb-0">Rejected Events ({{ rejected_events|length }})</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Event</th>
+                                    <th>Date</th>
+                                    <th>Location</th>
+                                    <th>Rejected</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for event in rejected_events %}
+                                <tr>
+                                    <td>
+                                        <a href="{{ url_for('user_event_detail', event_id=event.id) }}" class="text-decoration-none">
+                                            {{ event.title }}
+                                        </a>
+                                    </td>
+                                    <td>{{ event.start_date.strftime('%Y-%m-%d') }}</td>
+                                    <td>{{ event.location }}</td>
+                                    <td>{{ event.updated_at.strftime('%Y-%m-%d') }}</td>
+                                    <td>
+                                        <a href="{{ url_for('user_event_detail', event_id=event.id) }}" class="btn btn-sm btn-outline-primary">View</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+        
+        <div class="col-lg-4">
+            <!-- Quick Actions -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('user_create_event') }}" class="btn btn-primary">
+                            <i class="bi bi-plus-circle me-2"></i> Create New Event
+                        </a>
+                        <a href="{{ url_for('user_events') }}" class="btn btn-outline-primary">
+                            <i class="bi bi-list-ul me-2"></i> View All Events
+                        </a>
+                        <a href="{{ url_for('scan_qr') }}" class="btn btn-outline-info">
+                            <i class="bi bi-qr-code me-2"></i> QR Code Scanner
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Upcoming Events -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Upcoming Events</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Fixed upcoming events calculation -->
+                    {% set upcoming_events = [] %}
+                    {% for event in approved_events %}
+                        {% if event.start_date >= now %}
+                            {% set _ = upcoming_events.append(event) %}
+                        {% endif %}
+                    {% endfor %}
+                    {% set upcoming_events = upcoming_events|sort(attribute='start_date') %}
+
+                    {% if upcoming_events %}
+                    <div class="list-group list-group-flush">
+                        {% for event in upcoming_events[:3] %}
+                        <a href="{{ url_for('user_event_detail', event_id=event.id) }}" class="list-group-item list-group-item-action">
+                            <div class="d-flex justify-content-between">
+                                <h6 class="mb-1">{{ event.title }}</h6>
+                                <small>{{ event.start_date.strftime('%m/%d') }}</small>
+                            </div>
+                            <small class="text-muted">{{ event.location }}</small>
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No upcoming events.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Recent Activity</h5>
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        {% set recent_activity = (pending_events + approved_events + rejected_events)|sort(attribute='updated_at', reverse=true) %}
+                        {% for event in recent_activity[:5] %}
+                        <div class="timeline-item mb-3">
+                            <div class="timeline-content">
+                                <div class="d-flex justify-content-between">
+                                    <strong>{{ event.title }}</strong>
+                                    <small class="text-muted">{{ event.updated_at.strftime('%m/%d') }}</small>
+                                </div>
+                                <small class="text-muted">
+                                    Status changed to
+                                    <span class="badge bg-{{ 'success' if event.status == 'approved' else 'warning' if event.status == 'pending' else 'danger' }}">
+                                        {{ event.status }}
+                                    </span>
+                                </small>
+                            </div>
+                        </div>
+                        {% else %}
+                        <p class="text-muted">No recent activity.</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

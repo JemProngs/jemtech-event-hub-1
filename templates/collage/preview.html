@@ -1,0 +1,329 @@
+{% extends "base.html" %}
+
+{% block title %}Collage Preview - JemTech Event Hub{% endblock %}
+
+{% block extra_css %}
+<style>
+    .preview-container {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+    .collage-preview {
+        border: 2px solid #dee2e6;
+        border-radius: 10px;
+        padding: 20px;
+        background-color: #f8f9fa;
+    }
+    .preview-image {
+        max-width: 100%;
+        height: auto;
+        border-radius: 8px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+    .download-options {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 30px;
+    }
+    .download-option {
+        border: 2px solid #e9ecef;
+        border-radius: 10px;
+        padding: 20px;
+        text-align: center;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    .download-option:hover {
+        border-color: #005EB8;
+        background-color: #f8f9fa;
+        transform: translateY(-2px);
+    }
+    .download-option i {
+        font-size: 2.5rem;
+        color: #005EB8;
+        margin-bottom: 15px;
+    }
+    .action-buttons {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 30px;
+    }
+    .quality-options {
+        display: flex;
+        gap: 15px;
+        margin: 20px 0;
+        justify-content: center;
+    }
+    .quality-btn {
+        padding: 8px 15px;
+        border: 1px solid #dee2e6;
+        border-radius: 5px;
+        background: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .quality-btn.active {
+        background-color: #005EB8;
+        color: white;
+        border-color: #005EB8;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="preview-container">
+        <div class="row mb-4">
+            <div class="col-12">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
+                        <li class="breadcrumb-item"><a href="{{ url_for('event_public_page', public_id=event.public_id) }}">{{ event.title }}</a></li>
+                        <li class="breadcrumb-item"><a href="{{ url_for('collage.builder') }}?event_id={{ event.id }}">Collage Builder</a></li>
+                        <li class="breadcrumb-item active" aria-current="page">Preview</li>
+                    </ol>
+                </nav>
+
+                <h1 class="display-5 fw-bold text-center">Collage Preview</h1>
+                <p class="lead text-center text-muted">Review your masterpiece before downloading</p>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <!-- Collage Preview -->
+                <div class="collage-preview mb-4">
+                    <div class="text-center">
+                        <h3 class="mb-3">{{ collage.title or "My Collage" }}</h3>
+                        <img src="{{ url_for('static', filename=collage.output_path) }}" alt="Collage Preview" class="preview-image">
+
+                        <div class="mt-3 text-muted">
+                            <small>Created on {{ collage.created_at.strftime('%B %d, %Y at %H:%M') }}</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quality Options -->
+                <div class="quality-options">
+                    <h5 class="me-3">Download Quality:</h5>
+                    <button class="quality-btn active" data-quality="high">High</button>
+                    <button class="quality-btn" data-quality="medium">Medium</button>
+                    <button class="quality-btn" data-quality="low">Low</button>
+                </div>
+
+                <!-- Download Options -->
+                <div class="download-options">
+                    <div class="download-option" data-format="jpg">
+                        <i class="bi bi-file-image"></i>
+                        <h5>JPG Format</h5>
+                        <p class="text-muted">Best for photos and web use</p>
+                        <small>High compatibility</small>
+                    </div>
+
+                    <div class="download-option" data-format="png">
+                        <i class="bi bi-file-image"></i>
+                        <h5>PNG Format</h5>
+                        <p class="text-muted">Best for graphics with transparency</p>
+                        <small>Lossless quality</small>
+                    </div>
+
+                    <div class="download-option" data-format="pdf">
+                        <i class="bi bi-file-earmark-pdf"></i>
+                        <h5>PDF Format</h5>
+                        <p class="text-muted">Best for printing and sharing</p>
+                        <small>Printable format</small>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <a href="{{ url_for('collage.builder') }}?event_id={{ event.id }}&edit={{ collage.id }}" class="btn btn-outline-secondary">
+                        <i class="bi bi-pencil me-2"></i> Edit Collage
+                    </a>
+
+                    <button class="btn btn-primary" id="download-btn">
+                        <i class="bi bi-download me-2"></i> Download Now
+                    </button>
+
+                    <a href="{{ url_for('collage.download_collage', collage_id=collage.id) }}" class="btn btn-success">
+                        <i class="bi bi-printer me-2"></i> Print Ready
+                    </a>
+                </div>
+
+                <!-- Share Options -->
+                <div class="text-center mt-4">
+                    <h5 class="mb-3">Share Your Creation</h5>
+                    <div class="btn-group">
+                        <button class="btn btn-outline-primary">
+                            <i class="bi bi-facebook me-2"></i> Facebook
+                        </button>
+                        <button class="btn btn-outline-info">
+                            <i class="bi bi-twitter me-2"></i> Twitter
+                        </button>
+                        <button class="btn btn-outline-danger">
+                            <i class="bi bi-instagram me-2"></i> Instagram
+                        </button>
+                        <button class="btn btn-outline-secondary" onclick="copyCollageLink()">
+                            <i class="bi bi-link-45deg me-2"></i> Copy Link
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Related Collages -->
+        <div class="row mt-5">
+            <div class="col-12">
+                <h3 class="mb-4">More Collages from This Event</h3>
+                <div class="row">
+                    {% for related_collage in related_collages %}
+                    <div class="col-md-4 mb-3">
+                        <div class="card">
+                            <img src="{{ url_for('static', filename=related_collage.output_path) }}" class="card-img-top" alt="{{ related_collage.title }}" style="height: 200px; object-fit: cover;">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ related_collage.title }}</h5>
+                                <p class="card-text">
+                                    <small class="text-muted">{{ related_collage.created_at.strftime('%B %d, %Y') }}</small>
+                                </p>
+                                <a href="{{ url_for('collage.preview_collage', collage_id=related_collage.id) }}" class="btn btn-sm btn-outline-primary">View</a>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        let selectedFormat = 'jpg';
+        let selectedQuality = 'high';
+
+        // Format selection
+        const downloadOptions = document.querySelectorAll('.download-option');
+        downloadOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                downloadOptions.forEach(opt => opt.classList.remove('active'));
+                this.classList.add('active');
+                selectedFormat = this.dataset.format;
+            });
+        });
+
+        // Quality selection
+        const qualityButtons = document.querySelectorAll('.quality-btn');
+        qualityButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                qualityButtons.forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                selectedQuality = this.dataset.quality;
+            });
+        });
+
+        // Download button
+        const downloadBtn = document.getElementById('download-btn');
+        if (downloadBtn) {
+            downloadBtn.addEventListener('click', function() {
+                // Show loading state
+                const originalText = downloadBtn.innerHTML;
+                downloadBtn.innerHTML = '<i class="bi bi-arrow-clockwise animate-spin me-2"></i> Preparing...';
+                downloadBtn.disabled = true;
+
+                // Simulate download preparation
+                setTimeout(() => {
+                    // Determine download URL based on format and quality
+                    let downloadUrl;
+                    if (selectedFormat === 'pdf') {
+                        downloadUrl = "{{ url_for('collage.download_collage', collage_id=collage.id) }}";
+                    } else {
+                        downloadUrl = "{{ url_for('static', filename=collage.output_path) }}";
+                    }
+
+                    // Create download link
+                    const link = document.createElement('a');
+                    link.href = downloadUrl;
+                    link.download = `collage-{{ collage.id }}.${selectedFormat}`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+
+                    // Reset button state
+                    downloadBtn.innerHTML = originalText;
+                    downloadBtn.disabled = false;
+
+                    // Show success message
+                    showAlert('Download started successfully!', 'success');
+                }, 1500);
+            });
+        }
+
+        // Share functionality
+        const shareButtons = document.querySelectorAll('.btn-group .btn');
+        shareButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const platform = this.textContent.trim();
+                shareOnPlatform(platform);
+            });
+        });
+    });
+
+    function copyCollageLink() {
+        const url = window.location.href;
+        navigator.clipboard.writeText(url).then(() => {
+            showAlert('Collage link copied to clipboard!', 'success');
+        }).catch(err => {
+            console.error('Failed to copy: ', err);
+            showAlert('Failed to copy link. Please try again.', 'danger');
+        });
+    }
+
+    function shareOnPlatform(platform) {
+        const url = encodeURIComponent(window.location.href);
+        const title = encodeURIComponent("Check out my collage from {{ event.title }}");
+
+        let shareUrl;
+        switch (platform) {
+            case 'Facebook':
+                shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+                break;
+            case 'Twitter':
+                shareUrl = `https://twitter.com/intent/tweet?text=${title}&url=${url}`;
+                break;
+            case 'Instagram':
+                // Instagram doesn't support direct sharing via URL
+                showAlert('Please save the image and share it directly on Instagram.', 'info');
+                return;
+            default:
+                return;
+        }
+
+        window.open(shareUrl, '_blank');
+    }
+
+    function showAlert(message, type) {
+        const alert = document.createElement('div');
+        alert.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        alert.style.top = '20px';
+        alert.style.right = '20px';
+        alert.style.zIndex = '1060';
+        alert.style.minWidth = '300px';
+        alert.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+
+        document.body.appendChild(alert);
+
+        // Auto-dismiss after 5 seconds
+        setTimeout(() => {
+            const bsAlert = bootstrap.Alert.getOrCreateInstance(alert);
+            bsAlert.close();
+        }, 5000);
+    }
+</script>
+{% endblock %}

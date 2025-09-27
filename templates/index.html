@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Home - JemTech Event Hub{% endblock %}
+
+{% block content %}
+<div class="hero-section">
+    <div class="container">
+        <div class="row align-items-center min-vh-50">
+            <div class="col-lg-8">
+                <h1 class="display-4 fw-bold mb-4">Create, Share, and Celebrate Events</h1>
+                <p class="lead mb-4">JemTech Event Hub helps you create amazing events, engage with attendees, and capture memories that last a lifetime.</p>
+                <div class="d-flex gap-2">
+                    <a href="{{ url_for('events_list') }}" class="btn btn-warning btn-lg">Browse Events</a>
+                    {% if not current_user.is_authenticated %}
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-outline-light btn-lg">Get Started</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row mb-5">
+        <div class="col-12 text-center">
+            <h2 class="mb-3">How It Works</h2>
+            <p class="lead text-muted">Simple steps to create and manage your events</p>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <i class="bi bi-plus-circle-fill text-primary fs-1"></i>
+                    </div>
+                    <h4 class="card-title">Create Events</h4>
+                    <p class="card-text">Propose events with detailed information, banners, and schedules for admin approval.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <i class="bi bi-qr-code text-primary fs-1"></i>
+                    </div>
+                    <h4 class="card-title">Share QR Codes</h4>
+                    <p class="card-text">Generate unique QR codes for easy event access and check-in for attendees.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center p-4">
+                    <div class="bg-primary bg-opacity-10 rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                        <i class="bi bi-images text-primary fs-1"></i>
+                    </div>
+                    <h4 class="card-title">Capture Memories</h4>
+                    <p class="card-text">Attendees can upload photos and videos, apply filters, and create collages.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if featured_events %}
+<div class="bg-light py-5">
+    <div class="container">
+        <div class="row mb-4">
+            <div class="col-12">
+                <h2 class="text-center mb-3">Featured Events</h2>
+                <p class="text-center text-muted">Discover upcoming events you might be interested in</p>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            {% for event in featured_events %}
+            <div class="col-lg-4 col-md-6">
+                <div class="card event-card h-100">
+                    {% if event.banner_image %}
+                    <img src="{{ url_for('uploaded_file', filename=event.banner_image) }}" class="card-img-top" alt="{{ event.title }}" style="height: 200px; object-fit: cover;">
+                    {% else %}
+                    <div class="card-img-top bg-secondary d-flex align-items-center justify-content-center" style="height: 200px;">
+                        <i class="bi bi-calendar-event text-white fs-1"></i>
+                    </div>
+                    {% endif %}
+                    <div class="card-body">
+                        <h5 class="card-title">{{ event.title }}</h5>
+                        <p class="card-text text-muted">{{ event.short_description or event.description|truncate(100) }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">
+                                <i class="bi bi-geo-alt"></i> {{ event.location }}
+                            </small>
+                            <small class="text-muted">
+                                <i class="bi bi-calendar"></i> {{ event.start_date.strftime('%b %d, %Y') }}
+                            </small>
+                        </div>
+                    </div>
+                    <div class="card-footer bg-transparent">
+                        <a href="{{ url_for('event_public_page', public_id=event.public_id) }}" class="btn btn-primary btn-sm w-100">View Event</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="{{ url_for('events_list') }}" class="btn btn-outline-primary">View All Events</a>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% if recent_media %}
+<div class="container py-5">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="text-center mb-3">Recent Photos</h2>
+            <p class="text-center text-muted">See what people are sharing from recent events</p>
+        </div>
+    </div>
+
+    <div class="row g-2">
+        {% for media in recent_media %}
+        <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+            <div class="card">
+                <img src="{{ url_for('uploaded_file', filename=media.thumbnail_path or media.file_path) }}" class="card-img-top" alt="Event photo" style="height: 150px; object-fit: cover;">
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+{% endblock %}

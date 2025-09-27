@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+
+{% block title %}Create Event - JemTech Event Hub{% endblock %}
+
+{% block extra_css %}
+<style>
+    .image-preview {
+        max-width: 100%;
+        max-height: 200px;
+        border: 2px dashed #dee2e6;
+        border-radius: 5px;
+        padding: 5px;
+        display: none;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title mb-0">Create New Event</h2>
+                    <p class="text-muted mb-0">Fill out the form below to submit your event for approval</p>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('user_create_event') }}" enctype="multipart/form-data">
+                        {{ form.hidden_tag() }}
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="title" class="form-label">Event Title *</label>
+                                {{ form.title(class="form-control", required=true) }}
+                                {% if form.title.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.title.errors %}
+                                    <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="category" class="form-label">Category *</label>
+                                {{ form.category(class="form-select", required=true) }}
+                                {% if form.category.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.category.errors %}
+                                    <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="short_description" class="form-label">Short Description *</label>
+                            {{ form.short_description(class="form-control", rows="2", maxlength="300", required=true) }}
+                            <div class="form-text">Brief description that will appear on event cards (max 300 characters).</div>
+                            {% if form.short_description.errors %}
+                            <div class="text-danger">
+                                {% for error in form.short_description.errors %}
+                                <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="description" class="form-label">Full Description *</label>
+                            {{ form.description(class="form-control", rows="5", required=true) }}
+                            <div class="form-text">Detailed information about your event.</div>
+                            {% if form.description.errors %}
+                            <div class="text-danger">
+                                {% for error in form.description.errors %}
+                                <small>{{ error }}</small>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="location" class="form-label">Location *</label>
+                                {{ form.location(class="form-control", required=true) }}
+                                <div class="form-text">Physical address or online meeting link.</div>
+                                {% if form.location.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.location.errors %}
+                                    <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="banner_image" class="form-label">Banner Image</label>
+                                {{ form.banner_image(class="form-control", accept="image/*") }}
+                                <div class="form-text">Recommended size: 1200×600 pixels. Max 5MB.</div>
+                                {% if form.banner_image.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.banner_image.errors %}
+                                    <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="start_date" class="form-label">Start Date & Time *</label>
+                                {{ form.start_date(class="form-control", required=true) }}
+                                {% if form.start_date.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.start_date.errors %}
+                                    <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="col-md-6 mb-3">
+                                <label for="end_date" class="form-label">End Date & Time *</label>
+                                {{ form.end_date(class="form-control", required=true) }}
+                                {% if form.end_date.errors %}
+                                <div class="text-danger">
+                                    {% for error in form.end_date.errors %}
+                                    <small>{{ error }}</small>
+                                    {% endfor %}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Image Preview -->
+                        <div class="mb-3 text-center">
+                            <img id="imagePreview" class="image-preview" alt="Banner preview">
+                        </div>
+
+                        <div class="alert alert-info">
+                            <h6 class="alert-heading">Submission Guidelines</h6>
+                            <ul class="mb-0 small">
+                                <li>All events are subject to admin approval</li>
+                                <li>Provide accurate and complete information</li>
+                                <li>Ensure your event complies with our terms of service</li>
+                                <li>You will receive notification once your event is reviewed</li>
+                            </ul>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('user_dashboard') }}" class="btn btn-secondary me-md-2">Cancel</a>
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Image preview functionality
+        const bannerInput = document.getElementById('banner_image');
+        const imagePreview = document.getElementById('imagePreview');
+
+        if (bannerInput && imagePreview) {
+            bannerInput.addEventListener('change', function() {
+                const file = this.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        imagePreview.src = e.target.result;
+                        imagePreview.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    imagePreview.style.display = 'none';
+                }
+            });
+        }
+
+        // Form validation
+        const form = document.querySelector('form');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const startDateInput = document.getElementById('start_date');
+                const endDateInput = document.getElementById('end_date');
+
+                if (startDateInput && endDateInput && startDateInput.value && endDateInput.value) {
+                    const startDate = new Date(startDateInput.value);
+                    const endDate = new Date(endDateInput.value);
+
+                    if (endDate <= startDate) {
+                        e.preventDefault();
+                        alert('End date must be after start date.');
+                        return false;
+                    }
+
+                    const now = new Date();
+                    if (startDate <= now) {
+                        e.preventDefault();
+                        alert('Start date must be in the future.');
+                        return false;
+                    }
+                }
+            });
+        }
+
+        // Set minimum datetime for start date to current time
+        const now = new Date();
+        const timezoneOffset = now.getTimezoneOffset() * 60000;
+        const localISOTime = new Date(now - timezoneOffset).toISOString().slice(0, 16);
+
+        const startDateInput = document.getElementById('start_date');
+        const endDateInput = document.getElementById('end_date');
+
+        if (startDateInput) {
+            startDateInput.min = localISOTime;
+        }
+        if (endDateInput) {
+            endDateInput.min = localISOTime;
+        }
+    });
+</script>
+{% endblock %}

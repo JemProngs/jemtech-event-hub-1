@@ -1,0 +1,392 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Photos - {{ event.title }} - JemTech Event Hub{% endblock %}
+
+{% block extra_css %}
+<style>
+    .upload-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    .upload-dropzone {
+        border: 2px dashed #dee2e6;
+        border-radius: 10px;
+        padding: 3rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        background-color: #f8f9fa;
+    }
+    .upload-dropzone:hover {
+        border-color: #005EB8;
+        background-color: #e9ecef;
+    }
+    .upload-dropzone.dragover {
+        border-color: #005EB8;
+        background-color: #dbeafe;
+    }
+    .file-preview {
+        position: relative;
+        margin: 10px;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    .file-preview img {
+        width: 150px;
+        height: 150px;
+        object-fit: cover;
+    }
+    .file-preview .remove-file {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        width: 25px;
+        height: 25px;
+        border-radius: 50%;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .preview-container {
+        display: flex;
+        flex-wrap: wrap;
+        margin: 1rem 0;
+        min-height: 100px;
+    }
+    .consent-option {
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        padding: 1rem;
+        margin: 0.5rem 0;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    .consent-option.selected {
+        border-color: #005EB8;
+        background-color: #e9ecef;
+    }
+    .consent-option:hover {
+        border-color: #005EB8;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="upload-container">
+        <div class="text-center mb-4">
+            <h2>Share Your Photos</h2>
+            <p class="lead">Upload photos from {{ event.title }}</p>
+            <a href="{{ url_for('event_public_page', public_id=event.public_id) }}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i> Back to Event
+            </a>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Privacy Settings</h5>
+            </div>
+            <div class="card-body">
+                <div class="consent-options">
+                    <div class="consent-option selected" data-consent="public">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="consent" id="consentPublic" value="public" checked>
+                            <label class="form-check-label" for="consentPublic">
+                                <strong>Public Sharing</strong>
+                            </label>
+                        </div>
+                        <p class="small mb-0 text-muted">I consent to my photos being displayed publicly on the event wall and in promotional materials.</p>
+                    </div>
+
+                    <div class="consent-option" data-consent="private">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="consent" id="consentPrivate" value="private">
+                            <label class="form-check-label" for="consentPrivate">
+                                <strong>Private (Blurred)</strong>
+                            </label>
+                        </div>
+                        <p class="small mb-0 text-muted">Keep my photos private. Faces will be automatically blurred for privacy protection.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Upload Photos</h5>
+            </div>
+            <div class="card-body">
+                <form class="upload-form" action="{{ url_for('event_upload', public_id=event.public_id) }}" method="POST" enctype="multipart/form-data">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                    <div class="mb-3">
+                        <label for="author_name" class="form-label">Your Name</label>
+                        <input type="text" class="form-control" id="author_name" name="author_name" placeholder="Enter your name" required>
+                    </div>
+
+                    <input type="hidden" name="consent" id="consentValue" value="public">
+
+                    <div class="upload-dropzone" id="uploadDropzone">
+                        <div class="dropzone-content">
+                            <i class="bi bi-cloud-upload display-4 text-muted mb-3"></i>
+                            <h5>Drag & Drop your photos here</h5>
+                            <p class="text-muted">or click to browse files</p>
+                            <small class="text-muted">Supported formats: JPG, PNG, GIF. Max 16MB per file.</small>
+                        </div>
+                        <input type="file" id="fileInput" name="files" multiple accept="image/*" style="display: none;">
+                    </div>
+
+                    <div class="preview-container" id="previewContainer"></div>
+
+                    <div class="upload-progress" style="display: none;">
+                        <div class="progress mb-2">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                        </div>
+                        <div class="text-center">
+                            <span id="progressText">0%</span>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-3">
+                        <button type="submit" class="btn btn-primary btn-lg" id="uploadButton" disabled>
+                            <i class="bi bi-cloud-upload me-2"></i>Upload Photos
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="alert alert-info mt-4">
+            <h6><i class="bi bi-info-circle me-2"></i>What happens to your photos?</h6>
+            <ul class="small mb-0">
+                <li>All photos are automatically processed to remove EXIF metadata</li>
+                <li>Duplicate detection prevents multiple uploads of the same image</li>
+                <li>Photos are reviewed by event organizers before being published</li>
+                <li>You can request deletion of your photos by contacting the event organizers</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const dropzone = document.getElementById('uploadDropzone');
+        const fileInput = document.getElementById('fileInput');
+        const previewContainer = document.getElementById('previewContainer');
+        const uploadButton = document.getElementById('uploadButton');
+        const progressContainer = document.querySelector('.upload-progress');
+        const progressBar = document.querySelector('.progress-bar');
+        const progressText = document.getElementById('progressText');
+        const consentOptions = document.querySelectorAll('.consent-option');
+        const consentValue = document.getElementById('consentValue');
+
+        let selectedFiles = [];
+
+        // Consent option selection
+        consentOptions.forEach(option => {
+            option.addEventListener('click', function() {
+                const radio = this.querySelector('input[type="radio"]');
+                radio.checked = true;
+
+                // Update the hidden input value
+                consentValue.value = radio.value;
+
+                consentOptions.forEach(opt => opt.classList.remove('selected'));
+                this.classList.add('selected');
+            });
+        });
+
+        // Dropzone functionality
+        dropzone.addEventListener('click', () => fileInput.click());
+
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzone.classList.add('dragover');
+        });
+
+        dropzone.addEventListener('dragleave', () => {
+            dropzone.classList.remove('dragover');
+        });
+
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', () => {
+            handleFiles(fileInput.files);
+        });
+
+        function handleFiles(files) {
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+
+                // Check file type and size
+                if (!file.type.startsWith('image/')) {
+                    showAlert('Please select only image files.', 'danger');
+                    continue;
+                }
+
+                if (file.size > 16 * 1024 * 1024) {
+                    showAlert(`File "${file.name}" is too large. Maximum size is 16MB.`, 'danger');
+                    continue;
+                }
+
+                // Add to selected files if not already added
+                if (!selectedFiles.some(f => f.name === file.name && f.size === file.size)) {
+                    selectedFiles.push(file);
+                    createPreview(file);
+                }
+            }
+
+            updateUploadButton();
+        }
+
+        function createPreview(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.createElement('div');
+                preview.className = 'file-preview';
+
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.alt = file.name;
+
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'btn btn-sm btn-danger remove-file';
+                removeBtn.innerHTML = '&times;';
+                removeBtn.addEventListener('click', function() {
+                    selectedFiles = selectedFiles.filter(f => f !== file);
+                    preview.remove();
+                    updateUploadButton();
+                });
+
+                preview.appendChild(img);
+                preview.appendChild(removeBtn);
+                previewContainer.appendChild(preview);
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function updateUploadButton() {
+            uploadButton.disabled = selectedFiles.length === 0;
+        }
+
+        // Upload functionality
+        const uploadForm = document.querySelector('.upload-form');
+        uploadForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            if (selectedFiles.length === 0) {
+                showAlert('Please select at least one file to upload.', 'warning');
+                return;
+            }
+
+            const consent = consentValue.value;
+            const authorName = document.getElementById('author_name').value;
+
+            if (!authorName) {
+                showAlert('Please enter your name.', 'warning');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('consent', consent);
+            formData.append('author_name', authorName);
+
+            selectedFiles.forEach(file => {
+                formData.append('files', file);
+            });
+
+            // Show progress
+            progressContainer.style.display = 'block';
+            uploadButton.disabled = true;
+
+            const xhr = new XMLHttpRequest();
+
+            xhr.upload.addEventListener('progress', function(e) {
+                if (e.lengthComputable) {
+                    const percent = (e.loaded / e.total) * 100;
+                    progressBar.style.width = percent + '%';
+                    progressBar.textContent = Math.round(percent) + '%';
+                    progressText.textContent = Math.round(percent) + '%';
+                }
+            });
+
+            xhr.addEventListener('load', function() {
+                if (xhr.status === 200) {
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        showUploadResults(response);
+                        resetUploader();
+                    } catch (error) {
+                        showAlert('Upload failed. Invalid response from server.', 'danger');
+                    }
+                } else if (xhr.status === 400) {
+                    showAlert('Upload failed. Please check your form data and try again.', 'danger');
+                } else if (xhr.status === 413) {
+                    showAlert('Upload failed. File size too large.', 'danger');
+                } else {
+                    showAlert('Upload failed. Please try again.', 'danger');
+                }
+                progressContainer.style.display = 'none';
+                uploadButton.disabled = false;
+            });
+
+            xhr.addEventListener('error', function() {
+                showAlert('Upload failed. Please check your connection and try again.', 'danger');
+                progressContainer.style.display = 'none';
+                uploadButton.disabled = false;
+            });
+
+            xhr.open('POST', this.action, true);
+            xhr.send(formData);
+        });
+
+        function showUploadResults(response) {
+            if (response.success) {
+                showAlert(`Successfully uploaded ${response.uploaded_count} file(s). They will be visible after approval.`, 'success');
+            } else {
+                showAlert('Upload failed: ' + (response.message || 'Unknown error'), 'danger');
+            }
+        }
+
+        function resetUploader() {
+            selectedFiles = [];
+            previewContainer.innerHTML = '';
+            fileInput.value = '';
+            updateUploadButton();
+        }
+
+        function showAlert(message, type) {
+            // Remove existing alerts
+            const existingAlerts = document.querySelectorAll('.alert-dismissible');
+            existingAlerts.forEach(alert => alert.remove());
+
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type} alert-dismissible fade show`;
+            alert.innerHTML = `
+                ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+
+            const main = document.querySelector('main');
+            if (main) {
+                main.insertBefore(alert, main.firstChild);
+            }
+
+            setTimeout(() => {
+                if (alert.parentNode) {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }
+            }, 5000);
+        }
+    });
+</script>
+{% endblock %}

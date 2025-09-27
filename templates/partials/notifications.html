@@ -1,0 +1,200 @@
+<!-- templates/partials/notifications.html -->
+<!-- Flash Messages Container -->
+<div class="notifications-container position-fixed top-0 end-0 p-3" style="z-index: 1055;">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="toast align-items-center text-white bg-{{ category }} border-0 mb-2"
+                     role="alert" aria-live="assertive" aria-atomic="true"
+                     data-bs-delay="5000">
+                    <div class="d-flex">
+                        <div class="toast-body d-flex align-items-center">
+                            <i class="bi {{
+                                'bi-check-circle-fill' if category == 'success'
+                                else 'bi-exclamation-triangle-fill' if category == 'danger'
+                                else 'bi-exclamation-circle-fill' if category == 'warning'
+                                else 'bi-info-circle-fill'
+                            }} me-2 fs-5"></i>
+                            {{ message }}
+                        </div>
+                        <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                                data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                </div>
+            {% endfor %}
+
+            <script>
+                // Auto-show flash messages
+                document.addEventListener('DOMContentLoaded', function() {
+                    const toasts = document.querySelectorAll('.toast');
+                    toasts.forEach(toastEl => {
+                        const toast = new bootstrap.Toast(toastEl);
+                        toast.show();
+                    });
+                });
+            </script>
+        {% endif %}
+    {% endwith %}
+</div>
+
+<!-- Loading Spinner -->
+<div class="loading-spinner position-fixed top-50 start-50 translate-middle" style="z-index: 9999; display: none;">
+    <div class="d-flex align-items-center justify-content-center">
+        <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+        <div class="ms-3 text-white">
+            <div class="spinner-grow spinner-grow-sm text-primary" role="status"></div>
+            <div class="spinner-grow spinner-grow-sm text-success ms-1" role="status"></div>
+            <div class="spinner-grow spinner-grow-sm text-warning ms-1" role="status"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Network Status Indicator -->
+<div class="network-status position-fixed top-0 start-50 translate-middle-x p-2" style="z-index: 1060; display: none;">
+    <div class="alert alert-warning alert-dismissible fade show mb-0 shadow" role="alert">
+        <i class="bi bi-wifi-off me-2"></i>
+        <strong>Connection Lost</strong> - You appear to be offline
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+</div>
+
+<style>
+.notifications-container {
+    max-width: 400px;
+}
+
+.toast {
+    backdrop-filter: blur(10px);
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.loading-spinner {
+    background: rgba(0, 0, 0, 0.7);
+    padding: 2rem;
+    border-radius: 1rem;
+    backdrop-filter: blur(10px);
+}
+
+.network-status .alert {
+    border-radius: 0.75rem;
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        transform: translateY(-100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Progress notification */
+.progress-notification {
+    position: fixed;
+    bottom: 1rem;
+    right: 1rem;
+    z-index: 1060;
+    min-width: 300px;
+}
+
+/* Print styles for notifications */
+@media print {
+    .notifications-container,
+    .loading-spinner,
+    .network-status {
+        display: none !important;
+    }
+}
+</style>
+
+<script>
+// Network status monitoring
+document.addEventListener('DOMContentLoaded', function() {
+    const networkStatus = document.querySelector('.network-status');
+
+    function updateNetworkStatus() {
+        if (navigator.onLine) {
+            networkStatus.style.display = 'none';
+        } else {
+            networkStatus.style.display = 'block';
+        }
+    }
+
+    window.addEventListener('online', updateNetworkStatus);
+    window.addEventListener('offline', updateNetworkStatus);
+    updateNetworkStatus();
+});
+
+// Loading spinner control
+window.JemTechLoader = {
+    show: function() {
+        document.querySelector('.loading-spinner').style.display = 'block';
+    },
+
+    hide: function() {
+        document.querySelector('.loading-spinner').style.display = 'none';
+    },
+
+    showProgress: function(message = 'Processing...') {
+        // Create or update progress notification
+        let progressEl = document.querySelector('.progress-notification');
+        if (!progressEl) {
+            progressEl = document.createElement('div');
+            progressEl.className = 'progress-notification';
+            progressEl.innerHTML = `
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center">
+                            <div class="spinner-border spinner-border-sm text-primary me-2"></div>
+                            <span class="progress-message">${message}</span>
+                        </div>
+                        <div class="progress mt-2" style="height: 4px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated"
+                                 style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(progressEl);
+        }
+        return progressEl;
+    },
+
+    updateProgress: function(percentage, message = null) {
+        const progressEl = document.querySelector('.progress-notification');
+        if (progressEl) {
+            const progressBar = progressEl.querySelector('.progress-bar');
+            const messageEl = progressEl.querySelector('.progress-message');
+
+            progressBar.style.width = percentage + '%';
+            if (message) messageEl.textContent = message;
+
+            if (percentage >= 100) {
+                setTimeout(() => {
+                    progressEl.remove();
+                }, 500);
+            }
+        }
+    },
+
+    hideProgress: function() {
+        const progressEl = document.querySelector('.progress-notification');
+        if (progressEl) progressEl.remove();
+    }
+};
+
+// Auto-hide success messages faster
+document.addEventListener('DOMContentLoaded', function() {
+    const successToasts = document.querySelectorAll('.toast.bg-success');
+    successToasts.forEach(toastEl => {
+        const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+        toast.show();
+    });
+});
+</script>

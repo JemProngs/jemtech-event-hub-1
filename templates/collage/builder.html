@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+
+{% block title %}Collage Builder - JemTech Event Hub{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/collage-builder.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Collage Builder</h1>
+        <div>
+            <a href="{{ url_for('event_public_page', public_id=event.public_id) }}" class="btn btn-outline-secondary me-2">
+                <i class="bi bi-arrow-left me-1"></i> Back to Event
+            </a>
+            <button class="btn btn-primary" id="save-collage">
+                <i class="bi bi-save me-1"></i> Save Collage
+            </button>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-9">
+            <!-- Collage Canvas -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Collage Canvas</h5>
+                </div>
+                <div class="card-body">
+                    <div class="collage-toolbar mb-3">
+                        <button class="collage-tool active" data-tool="select">
+                            <i class="bi bi-cursor me-1"></i> Select
+                        </button>
+                        <button class="collage-tool" data-tool="move">
+                            <i class="bi bi-arrows-move me-1"></i> Move
+                        </button>
+                        <button class="collage-tool" data-tool="crop">
+                            <i class="bi bi-crop me-1"></i> Crop
+                        </button>
+                        <button class="collage-tool" data-tool="text">
+                            <i class="bi bi-fonts me-1"></i> Text
+                        </button>
+                        <button class="collage-tool" data-tool="undo">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i> Undo
+                        </button>
+                        <button class="collage-tool" data-tool="redo">
+                            <i class="bi bi-arrow-clockwise me-1"></i> Redo
+                        </button>
+                    </div>
+                    
+                    <div class="collage-builder">
+                        <canvas id="collage-canvas" width="800" height="600"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-3">
+            <!-- Template Selection -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Templates</h5>
+                </div>
+                <div class="card-body">
+                    <div class="template-grid">
+                        <div class="template-item active" data-template="basic_2x2">
+                            <img src="{{ url_for('static', filename='images/templates/collage_2x2.jpg') }}" class="template-thumbnail" alt="2x2 Grid">
+                            <div class="template-name">2x2 Grid</div>
+                        </div>
+                        <div class="template-item" data-template="vertical_split">
+                            <img src="{{ url_for('static', filename='images/templates/collage_vertical.jpg') }}" class="template-thumbnail" alt="Vertical Split">
+                            <div class="template-name">Vertical Split</div>
+                        </div>
+                        <div class="template-item" data-template="horizontal_split">
+                            <img src="{{ url_for('static', filename='images/templates/collage_horizontal.jpg') }}" class="template-thumbnail" alt="Horizontal Split">
+                            <div class="template-name">Horizontal Split</div>
+                        </div>
+                        <div class="template-item" data-template="main_with_sides">
+                            <img src="{{ url_for('static', filename='images/templates/collage_main_sides.jpg') }}" class="template-thumbnail" alt="Main with Sides">
+                            <div class="template-name">Main with Sides</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Event Images -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Event Images</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <input type="file" id="image-upload" accept="image/*" class="form-control">
+                    </div>
+                    
+                    <div class="event-images-grid">
+                        {% for item in media %}
+                        <img src="{{ url_for('static', filename=item.thumbnail_path or item.file_path) }}" 
+                             class="img-thumbnail me-2 mb-2" style="width: 80px; height: 80px; object-fit: cover; cursor: pointer;"
+                             data-src="{{ url_for('static', filename=item.file_path) }}"
+                             onclick="addImageToCollage(this)">
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Filters -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Filters</h5>
+                </div>
+                <div class="card-body">
+                    <div class="filter-preview">
+                        <div class="filter-item active" data-filter="normal">
+                            <img src="{{ url_for('static', filename='images/filters/normal.jpg') }}" class="filter-preview-img" alt="Normal">
+                            <div class="filter-name">Normal</div>
+                        </div>
+                        <div class="filter-item" data-filter="grayscale">
+                            <img src="{{ url_for('static', filename='images/filters/grayscale.jpg') }}" class="filter-preview-img" alt="Grayscale">
+                            <div class="filter-name">Grayscale</div>
+                        </div>
+                        <div class="filter-item" data-filter="sepia">
+                            <img src="{{ url_for('static', filename='images/filters/sepia.jpg') }}" class="filter-preview-img" alt="Sepia">
+                            <div class="filter-name">Sepia</div>
+                        </div>
+                        <div class="filter-item" data-filter="vintage">
+                            <img src="{{ url_for('static', filename='images/filters/vintage.jpg') }}" class="filter-preview-img" alt="Vintage">
+                            <div class="filter-name">Vintage</div>
+                        </div>
+                        <div class="filter-item" data-filter="warm">
+                            <img src="{{ url_for('static', filename='images/filters/warm.jpg') }}" class="filter-preview-img" alt="Warm">
+                            <div class="filter-name">Warm</div>
+                        </div>
+                        <div class="filter-item" data-filter="cool">
+                            <img src="{{ url_for('static', filename='images/filters/cool.jpg') }}" class="filter-preview-img" alt="Cool">
+                            <div class="filter-name">Cool</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Stickers -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Stickers</h5>
+                </div>
+                <div class="card-body">
+                    <div class="sticker-palette">
+                        <img src="{{ url_for('static', filename='images/stickers/heart.png') }}" class="sticker-item" data-sticker="heart.png" alt="Heart">
+                        <img src="{{ url_for('static', filename='images/stickers/star.png') }}" class="sticker-item" data-sticker="star.png" alt="Star">
+                        <img src="{{ url_for('static', filename='images/stickers/smile.png') }}" class="sticker-item" data-sticker="smile.png" alt="Smile">
+                        <img src="{{ url_for('static', filename='images/stickers/celebrate.png') }}" class="sticker-item" data-sticker="celebrate.png" alt="Celebrate">
+                        <img src="{{ url_for('static', filename='images/stickers/arrow.png') }}" class="sticker-item" data-sticker="arrow.png" alt="Arrow">
+                        <img src="{{ url_for('static', filename='images/stickers/music.png') }}" class="sticker-item" data-sticker="music.png" alt="Music">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Save Modal -->
+    <div class="modal fade" id="saveModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Save Collage</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="collage-title" class="form-label">Collage Title</label>
+                        <input type="text" class="form-control" id="collage-title" placeholder="My Awesome Collage">
+                    </div>
+                    <input type="hidden" id="collage-event-id" value="{{ event.id }}">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="confirm-save">Save Collage</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/collage-editor.js') }}"></script>
+<script>
+    // Define collage templates for the editor
+    window.COLLAGE_TEMPLATES = {
+        'basic_2x2': {
+            layout: [
+                {x: 0, y: 0, width: 0.5, height: 0.5},
+                {x: 0.5, y: 0, width: 0.5, height: 0.5},
+                {x: 0, y: 0.5, width: 0.5, height: 0.5},
+                {x: 0.5, y: 0.5, width: 0.5, height: 0.5}
+            ]
+        },
+        'vertical_split': {
+            layout: [
+                {x: 0, y: 0, width: 0.5, height: 1.0},
+                {x: 0.5, y: 0, width: 0.5, height: 1.0}
+            ]
+        },
+        'horizontal_split': {
+            layout: [
+                {x: 0, y: 0, width: 1.0, height: 0.5},
+                {x: 0, y: 0.5, width: 1.0, height: 0.5}
+            ]
+        },
+        'main_with_sides': {
+            layout: [
+                {x: 0, y: 0, width: 0.3, height: 1.0},
+                {x: 0.3, y: 0, width: 0.4, height: 1.0},
+                {x: 0.7, y: 0, width: 0.3, height: 1.0}
+            ]
+        }
+    };
+    
+    function addImageToCollage(element) {
+        // This function would be implemented in collage-editor.js
+        console.log('Adding image to collage:', element.dataset.src);
+    }
+</script>
+{% endblock %}

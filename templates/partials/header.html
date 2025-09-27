@@ -1,0 +1,130 @@
+<!-- templates/partials/header.html -->
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+    <div class="container">
+        <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
+            <!-- Logo Image -->
+            <img src="{{ url_for('static', filename='images/logo.png') }}"
+                 alt="JemTech Event Hub"
+                 style="height: 80px; width: auto; margin-right: 10px;">
+            <div>
+                <span class="fw-bold">JemTech</span>
+                <small class="d-block text-muted" style="font-size: 0.7rem; line-height: 1;">Event Hub</small>
+            </div>
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link d-flex align-items-center" href="{{ url_for('index') }}">
+                        <i class="bi bi-house me-1 d-none d-sm-inline"></i>
+                        Home
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link d-flex align-items-center" href="{{ url_for('events_list') }}">
+                        <i class="bi bi-calendar3 me-1 d-none d-sm-inline"></i>
+                        Events
+                    </a>
+                </li>
+
+                {% if current_user.is_authenticated %}
+                    {% if current_user.is_admin %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button"
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-speedometer2 me-1 d-none d-sm-inline"></i>
+                            Admin
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('admin_events') }}">Manage Events</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('admin_users') }}">Manage Users</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('admin_analytics') }}">Analytics</a></li>
+                        </ul>
+                    </li>
+                    {% else %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button"
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person-circle me-1 d-none d-sm-inline"></i>
+                            My Account
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ url_for('user_dashboard') }}">Dashboard</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('user_events') }}">My Events</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('user_create_event') }}">Create Event</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('scan_qr') }}">QR Scanner</a></li>
+                        </ul>
+                    </li>
+                    {% endif %}
+                {% endif %}
+            </ul>
+
+            <ul class="navbar-nav ms-auto">
+                {% if current_user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button"
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-person-circle me-1"></i>
+                            <span class="d-none d-md-inline">{{ current_user.username }}</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><span class="dropdown-item-text small text-muted">Signed in as</span></li>
+                            <li><span class="dropdown-item-text fw-bold">{{ current_user.username }}</span></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('user_dashboard') }}"><i class="bi bi-speedometer2 me-2"></i>Dashboard</a></li>
+                            <li><a class="dropdown-item" href="#profile"><i class="bi bi-person me-2"></i>Profile</a></li>
+                            <li><a class="dropdown-item" href="#settings"><i class="bi bi-gear me-2"></i>Settings</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}">
+                                    <i class="bi bi-box-arrow-right me-2"></i>Logout
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item">
+                        <button class="btn btn-link nav-link theme-toggle" id="themeToggle" data-bs-toggle="tooltip" title="Toggle theme">
+                            <i class="bi bi-moon-fill" id="themeIcon"></i>
+                        </button>
+                    </li>
+
+                    {% if current_user.is_admin %}
+                    <li class="nav-item">
+                        <span class="nav-link badge bg-warning text-dark">ADMIN</span>
+                    </li>
+                    {% endif %}
+
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link d-flex align-items-center" href="{{ url_for('auth.login') }}">
+                            <i class="bi bi-box-arrow-in-right me-1 d-none d-sm-inline"></i>
+                            Login
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="btn btn-primary btn-sm ms-2" href="{{ url_for('auth.register') }}">
+                            <i class="bi bi-person-plus me-1"></i>Sign Up
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<!-- Notification Bell for Authenticated Users -->
+{% if current_user.is_authenticated %}
+<div class="position-fixed top-0 end-0 p-3" style="z-index: 1060;">
+    <div class="toast-container">
+        <!-- Notifications will be appended here -->
+    </div>
+</div>
+{% endif %}

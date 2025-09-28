@@ -854,12 +854,8 @@ def fix_database_paths():
         return f"Error fixing paths: {str(e)}"
 
 
+# Add this at the VERY END of app.py
 if __name__ == '__main__':
-    with app.app_context():
-        init_db()
-        os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-        os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'media'), exist_ok=True)
-        os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'banners'), exist_ok=True)
-        os.makedirs(app.config['REPORT_FOLDER'], exist_ok=True)
-
-    app.run(debug=True)
+    # For production, use Heroku's PORT environment variable
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
